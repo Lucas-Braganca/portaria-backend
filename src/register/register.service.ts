@@ -1,23 +1,24 @@
 import { Injectable, ParseUUIDPipe, NotFoundException } from '@nestjs/common';
-import { CreateTaskDto } from './dto/create-task.dto';
-import { GetTasksFilterDto } from './dto/get-tasks-filter-dto';
-import { TaskRepository } from './register.repository';
+import { CreateRegisterDto } from './dto/create-task.dto';
+import { GetRegistersFilterDto as GetRegistersFilterDto } from './dto/get-tasks-filter-dto';
+import { RegisterRepository } from './register.repository';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Register } from './register.entity';
-import { User } from 'src/auth/user.entity';
+import { User } from '../auth/user.entity';
+import { format } from 'date-fns';
 @Injectable()
 export class RegisterService {
   constructor(
-    @InjectRepository(TaskRepository)
-    private taskRepository: TaskRepository,
+    @InjectRepository(RegisterRepository)
+    private registerRepository: RegisterRepository,
   ) {}
 
-  async getTasks(filterDto: GetTasksFilterDto, user: User): Promise<Register[]> {
-    return this.taskRepository.getTasks(filterDto, user);
+  async getRegisters(filterDto: GetRegistersFilterDto): Promise<Register[]> {
+    return this.registerRepository.getRegisters(filterDto);
   }
 
-  async getTaskById(id: number, user: User): Promise<Register> {
-    const found = await this.taskRepository.findOne({id, userId: user.id});
+  async getRegisterById(id: number, user: User): Promise<Register> {
+    const found = await this.registerRepository.findOne({id, user: {id: user.id}});
 
     if (!found) {
       throw new NotFoundException(`TAsk with Id ${id} not found`);
@@ -26,13 +27,13 @@ export class RegisterService {
     return found;
   }
 
-  async createTask(createTaskDto: CreateTaskDto, user: User) {
-    return this.taskRepository.createTask(createTaskDto, user);
+  async createRegister(createTaskDto: CreateRegisterDto, user: User) {
+    return this.registerRepository.createRegister(createTaskDto, user);
   }
 
-  async deleteTask(id: number, user: User): Promise<void> {
+  async deleteRegister(id: number, user: User): Promise<void> {
     
-    const result = await this.taskRepository.delete({id, userId: user.id});
+    const result = await this.registerRepository.delete({id, user: {id: user.id}});
     console.log(result);
 
     if (result.affected === 0) {
@@ -41,9 +42,9 @@ export class RegisterService {
   }
 
   async updateTaskStatus(id: number, status: string, user: User): Promise<Register> {
-    const task = await this.getTaskById(id, user);
-    task.status = status;
-    await task.save();
-    return task;
+    const register = await this.getRegisterById(id, user);
+    register.endHour = format(new Date(), 'HH:mm:ss');
+    await register.save();
+    return register;
   }
 }

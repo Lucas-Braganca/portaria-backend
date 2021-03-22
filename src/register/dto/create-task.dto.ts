@@ -1,10 +1,23 @@
-import {IsNotEmpty} from 'class-validator'
+import {IsNotEmpty, IsOptional} from 'class-validator'
 
-export class CreateTaskDto {
+export class CreateRegisterDto {
     @IsNotEmpty()
-    title: string;
+    fullName: string;
 
     @IsNotEmpty()
-    description: string;
+    local: string;
+
+    @IsNotEmpty()
+    cpf: string;
+
+    @IsNotEmpty()
+    rg: string;
+
+    @IsNotEmpty()
+    firstPhone: string;
+
+    @IsOptional()
+    secondPhone?: string;
+
 }
 

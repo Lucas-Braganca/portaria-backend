@@ -1,11 +1,10 @@
 import {IsNotEmpty, IsOptional, IsIn} from 'class-validator'
 
-export class GetTasksFilterDto {
+export class GetRegistersFilterDto {
 
     @IsOptional()
-    status: string;
+    fullName: string;
 
     @IsOptional()
-    @IsNotEmpty()
-    search: string;
+    today: boolean;
 }

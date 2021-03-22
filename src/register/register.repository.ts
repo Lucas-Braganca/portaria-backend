@@ -1,36 +1,45 @@
 import { Repository, EntityRepository } from 'typeorm';
 import { Register } from './register.entity';
-import { CreateTaskDto } from './dto/create-task.dto';
-import { GetTasksFilterDto } from './dto/get-tasks-filter-dto';
-import { User } from 'src/auth/user.entity';
+import { CreateRegisterDto } from './dto/create-task.dto';
+import { GetRegistersFilterDto } from './dto/get-tasks-filter-dto';
+import { User } from '../auth/user.entity';
+import { format } from 'date-fns';
 
 @EntityRepository(Register)
-export class TaskRepository extends Repository<Register> {
-  async createTask(createTaskDto: CreateTaskDto, user: User): Promise<Register> {
-    const { title, description } = createTaskDto;
+export class RegisterRepository extends Repository<Register> {
+  async createRegister(createRegisterDto: CreateRegisterDto, user: User): Promise<Register> {
+    const { cpf, firstPhone, fullName, local, rg, secondPhone } = createRegisterDto;
 
-    const task = new Register();
-    task.title = title;
-    task.description = description;
-    task.status = 'open';
-    task.user = user;
-    await task.save();
-    delete task.user;
-    return task;
+    const register = new Register();
+    register.fullName = fullName;
+    register.local = local;
+    register.cpf = cpf;
+    register.rg = rg;
+    register.firstPhone = firstPhone;
+    register.secondPhone = secondPhone;
+    const today = new Date();
+    register.registerDate = format(today, 'dd/MM/yyyy');
+    register.startHour = format(today, 'HH:mm:ss');
+    register.user = user;
+    await register.save();
+    delete register.user;
+    return register;
   }
 
-  async getTasks(filterDto: GetTasksFilterDto, user: User): Promise<Register[]>{
-    const {status, search} = filterDto;
-    const query = this.createQueryBuilder('task');
-    query.where('task.userId = :userId', {userId: user.id});
-    if(status){
-      query.andWhere('task.status = :status', {status})
-    }
-    if(search){
-       query.andWhere('(task.title LIKE :search OR task.description LIKE :search)', {search: `%${search}%`});
-    }
-    const tasks = await query.getMany();
-    return tasks;
+  async getRegisters(filterDto: GetRegistersFilterDto): Promise<Register[]>{
+    const {fullName, today} = filterDto;
+    const query = this.createQueryBuilder('register');
 
+       if(fullName) {
+        query.andWhere('register.full_name LIKE :fullName', {fullName: `%${fullName}%`});
+       }
+
+       if(today) {
+         const day = format(new Date(), 'dd/MM/yyyy');
+         query.andWhere('register.register_date = :day', {day});
+       }
+    
+    const registers = await query.getMany();
+    return registers;
   }
 }

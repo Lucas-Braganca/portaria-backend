@@ -9,5 +9,6 @@ export const typeOrmConfig: TypeOrmModuleOptions = {
     database: 'portaria',
     entities: [__dirname + '/../**/*.entity.{js,ts}'],
     synchronize: true,
+    logging: true
      
 }
